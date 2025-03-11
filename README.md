@@ -26,15 +26,81 @@ This project involves data cleaning, transformation, and insightful analysis usi
 
 5. SQL Analysis Highlights
 
-## Top 10 Highest Revenue Generating Products
+## Code Explanation
+### Step 1: Import Libraries and Download Dataset
+- Python Code
+```
+import kaggle
+!kaggle datasets download ankitbansal06/retail-orders -f orders.csv
+```
 
-1. Top 5 Best-Selling Products in Each Region
+- Imports the Kaggle library to download data.
+- Downloads the dataset orders.csv from the specified dataset.
 
-2. Month-over-Month Growth for 2022 vs 2023
+### Step 2: Extract Zip File
+```
+import zipfile
+zip_ref = zipfile.ZipFile('orders.csv.zip') 
+zip_ref.extractall()  
+zip_ref.close()  
+```
+- Opens the zip file named 'orders.csv.zip'.
+- Extracts all its contents to the current directory.
+- Closes the zip file to free resources.
+### Step 3: Load Data and Handle Null Values
+```
+import pandas as pd
+df = pd.read_csv('orders.csv', na_values=['Not Available', 'unknown'])
+df['Ship Mode'].unique()
+```
+- Imports Pandas for data manipulation.
+- Reads the CSV file and treats 'Not Available' and 'unknown' as NaN (null values).
+- Displays the unique values in the 'Ship Mode' column.
 
-3.  Best Performing Sales Month for Each Category
+### Step 4: Clean Column Names
+```
+# df.rename(columns={'Order Id':'order_id', 'City':'city'})
+# df.columns = df.columns.str.lower()  
+# df.columns = df.columns.str.replace(' ', '_')  
+df.head(5)
+```
+- Initially commented out. These lines would:
+- Standardize column names by converting them to lowercase and replacing spaces with underscores.
+- The df.head(5) command displays the first five rows of the data.
+### Step 5: Derive New Columns
+```
+df['profit'] = df['sale_price'] - df['cost_price']
+df
+Calculates the 'profit' column by subtracting 'cost_price' from 'sale_price'.
+```
+- Displays the updated dataframe.
+### Step 6: Convert Date Column
+```
+df['order_date'] = pd.to_datetime(df['order_date'], format="%Y-%m-%d")
+```
+- Converts the 'order_date' column from string format to datetime format for easier analysis.
+### Step 7: Drop Unnecessary Columns
+```
+df.drop(columns=['list_price', 'cost_price', 'discount_percent'], inplace=True)
+```
+- Drops the columns 'list_price', 'cost_price', and 'discount_percent' to remove redundant data.
+### Step 8: Load Data into SQL Server
+```
+import sqlalchemy as sal
+engine = sal.create_engine('mssql://ANKIT\SQLEXPRESS/master?driver=ODBC+DRIVER+17+FOR+SQL+SERVER')
+conn = engine.connect()
+```
+- Imports SQLAlchemy to connect to an SQL Server database.
+- Establishes a connection with the specified SQL Server instance.
+### Step 9: Insert Data into SQL Table
+```
+df.to_sql('df_orders', con=conn, index=False, if_exists='append')
+Inserts the cleaned dataframe (df) into the SQL table 'df_orders'.
+```
+- The if_exists='append' argument ensures new data is added to the existing table.
+Commented Code with Improvements
 
-4. Sub-Category with Highest Profit Growth in 2023
+## - After That Load this data to SQL Server Management Studio to find out the final Insghits.
 
 ## Setup Instructions
 
@@ -51,6 +117,16 @@ pip install pandas sqlalchemy kaggle
 4. Establish a connection to your SQL Server.
 
 5. Run the SQL queries to analyze the data.
+
+## Top 10 Highest Revenue Generating Products
+
+1. Top 5 Best-Selling Products in Each Region
+
+2. Month-over-Month Growth for 2022 vs 2023
+
+3.  Best Performing Sales Month for Each Category
+
+4. Sub-Category with Highest Profit Growth in 2023
 
 ```sql
 
